@@ -2,6 +2,7 @@ package com.ioc.pacman;
 
 import javafx.animation.AnimationTimer;
 import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -26,8 +27,9 @@ import javafx.util.Duration;
 import net.java.games.input.*;
 
 public class GameScene extends Scene {
+    private HBox backgroundGame;
     private ImageView pacmanImageView;
-    private ImageView phantomsImageView[] = new ImageView[3];
+    private final ImageView[] phantomsImageView = new ImageView[3];
     private final int[][] pixels;
 
     private final int MOVE_PIXELS = 10;
@@ -43,20 +45,23 @@ public class GameScene extends Scene {
     private Pane pacmanMove;
     private Pane phantomsMove;
     private Thread controllerThread;
+    private Image heartImage;
+    private Controller controller;
 
     public GameScene(int[][] pixels, Controller controller) {
         super(new StackPane(), Pacman.SCENE_WEIGHT, Pacman.SCENE_HEIGHT);
 
+        this.controller = controller;
         this.pixels = pixels;
 
         customizeScene();
         setKeyHandlers();
 
-        setController(controller);
+        setController();
         startGameLoop();
     }
 
-    private void setController(Controller controller) {
+    private void setController() {
         controllerThread = new Thread(() -> {
             while (true) {
                 controller.poll();
@@ -101,7 +106,7 @@ public class GameScene extends Scene {
     private void customizeScene() {
         root = (StackPane) getRoot();
 
-        HBox backgroundGame = new HBox();
+        backgroundGame = new HBox();
         backgroundGame.setAlignment(Pos.BOTTOM_RIGHT);
         backgroundGame.setSpacing(15);
 
@@ -110,12 +115,14 @@ public class GameScene extends Scene {
         Image phantom1GIF = null;
         Image phantom2GIF = null;
         Image phantom3GIF = null;
+        heartImage = null;
         try {
             backgroundImage = new Image(new FileInputStream("src/main/resources/com/ioc/pacman/pacmanBackground.png"));
             pacmanGIF = new Image(new FileInputStream("src/main/resources/com/ioc/pacman/pacmanGIF.gif"));
             phantom1GIF = new Image(new FileInputStream("src/main/resources/com/ioc/pacman/phantom1.gif"));
             phantom2GIF = new Image(new FileInputStream("src/main/resources/com/ioc/pacman/phantom2.gif"));
             phantom3GIF = new Image(new FileInputStream("src/main/resources/com/ioc/pacman/phantom3.gif"));
+            heartImage = new Image(new FileInputStream("src/main/resources/com/ioc/pacman/health.png"));
         } catch (FileNotFoundException e) {
             System.out.println(e.getMessage());
             System.exit(-1);
@@ -133,14 +140,6 @@ public class GameScene extends Scene {
         backgroundGame.getChildren().add(nameLabel);
 
         for (int i = 0; i < Pacman.player.getHealth(); i++) {
-            Image heartImage = null;
-            try {
-                heartImage = new Image(new FileInputStream("src/main/resources/com/ioc/pacman/health.png"));
-            } catch (FileNotFoundException e) {
-                System.out.println(e.getMessage());
-                System.exit(-1);
-            }
-
             ImageView heartImageView = new ImageView(heartImage);
             heartImageView.setFitWidth(20);
             heartImageView.setFitHeight(20);
@@ -494,6 +493,14 @@ public class GameScene extends Scene {
             }
         }
 
+        increaseScore(checkPointExists);
+
+        checkWin();
+
+        return 0;
+    }
+
+    private void increaseScore(Point checkPointExists) {
         if(checkPointExists != null) {
             Iterator<Node> iterator = pacmanMove.getChildren().iterator();
             while (iterator.hasNext()) {
@@ -509,15 +516,26 @@ public class GameScene extends Scene {
                 }
             }
         }
-
-        if(Pacman.player.getScore() == 1520) {
-            controllerThread.stop();
-            Pacman.endScene = new EndScene("win");
-            Pacman.endGame();
-        }
-
-        return 0;
     }
+
+    private boolean gameWon = false;
+    private boolean gameLost = false;
+    private void checkWin() {
+        if(Pacman.player.getScore() == 1520) {
+            synchronized (this) {
+                if (!gameWon) {
+                    gameWon = true;
+                    controllerThread.stop();
+
+                    Platform.runLater(() -> {
+                        Pacman.endScene = new EndScene("win", controller);
+                        Pacman.endGame();
+                    });
+                }
+            }
+        }
+    }
+
 
     private boolean checkCollision() {
         Rectangle pacmanHitBox = new Rectangle(pacmanImageView.getBoundsInParent().getMinX(),
@@ -532,19 +550,42 @@ public class GameScene extends Scene {
 
             if (pacmanHitBox.getBoundsInParent().intersects(phantomHitBox.getBoundsInParent())) {
                 Pacman.player.minusHealth();
+                removeHeartImage();
 
-                pacmanImageView.setX(320);
-                pacmanImageView.setY(410);
+                pacmanImageView.setX(START_POINT_X);
+                pacmanImageView.setY(START_POINT_Y);
 
-                Pacman.endScene = new EndScene("lose");
                 if(Pacman.player.getHealth() == 0) {
-                    Pacman.endGame();
+                    synchronized (this) {
+                        if (!gameLost) {
+                            gameLost = true;
+                            controllerThread.stop();
+
+                            Platform.runLater(() -> {
+                                Pacman.endScene = new EndScene("lose", controller);
+                                Pacman.endGame();
+                            });
+                        }
+                    }
                 }
 
                 return true;
             }
         }
         return false;
+    }
+
+    private void removeHeartImage() {
+        for (int i = backgroundGame.getChildren().size() - 1; i >= 0; i--) {
+            Node node = backgroundGame.getChildren().get(i);
+            if (node instanceof ImageView) {
+                ImageView imageView = (ImageView) node;
+                if (imageView.getImage() == heartImage) {
+                    backgroundGame.getChildren().remove(i);
+                    return;
+                }
+            }
+        }
     }
 
     public void startGameLoop() {

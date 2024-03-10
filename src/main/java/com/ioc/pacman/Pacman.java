@@ -9,7 +9,7 @@ public class Pacman extends Application {
     public static final int SCENE_WEIGHT = 675;
 
     public static Player player;
-    private static final Scene startScene = new StartScene();
+    private static Scene startScene = new StartScene();
     public static Scene gameScene;
     public static Scene endScene;
     private static Stage stage;
@@ -30,6 +30,10 @@ public class Pacman extends Application {
         stage.show();
     }
 
+    public static void playAgain() {
+        startScene = new StartScene();
+        stage.setScene(startScene);
+    }
     public static void startGame() {
         stage.setScene(gameScene);
     }
