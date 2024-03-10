@@ -11,6 +11,7 @@ public class Pacman extends Application {
     public static Player player;
     private static final Scene startScene = new StartScene();
     public static Scene gameScene;
+    public static Scene endScene;
     private static Stage stage;
 
 
@@ -31,5 +32,8 @@ public class Pacman extends Application {
 
     public static void startGame() {
         stage.setScene(gameScene);
+    }
+    public static void endGame() {
+        stage.setScene(endScene);
     }
 }

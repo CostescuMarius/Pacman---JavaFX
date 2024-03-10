@@ -48,6 +48,21 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.comtel2000</groupId>
+            <artifactId>fx-onscreen-keyboard</artifactId>
+            <version>11.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>us.ihmc</groupId>
+            <artifactId>jinput</artifactId>
+            <version>2.0.6-ihmc2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-awt</artifactId>
+            <version>RELEASE210</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
             <version>5.2.5</version>

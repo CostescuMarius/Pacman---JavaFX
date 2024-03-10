@@ -6,10 +6,12 @@ import javafx.beans.property.SimpleIntegerProperty;
 public class Player {
     private String name;
     private IntegerProperty score = new SimpleIntegerProperty(0);
+    private int health;
 
     public Player(String name, int score) {
         this.name = name;
         this.score.set(score);
+        this.health = 3;
     }
 
     public String getName() {
@@ -26,6 +28,21 @@ public class Player {
 
     public int getScore() {
         return score.get();
+    }
+
+    public int getHealth() {
+        return health;
+    }
+
+    public void setHealth(int health) {
+        this.health = health;
+    }
+
+    public int minusHealth() {
+        if(this.health > 0) {
+            this.health--;
+        }
+        return this.health;
     }
 
     public IntegerProperty scoreProperty() {
