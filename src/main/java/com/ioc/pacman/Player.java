@@ -5,7 +5,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 
 public class Player {
     private String name;
-    private IntegerProperty score = new SimpleIntegerProperty(0);
+    private final IntegerProperty score = new SimpleIntegerProperty(0);
     private int health;
 
     public Player(String name, int score) {
@@ -38,11 +38,10 @@ public class Player {
         this.health = health;
     }
 
-    public int minusHealth() {
+    public void minusHealth() {
         if(this.health > 0) {
             this.health--;
         }
-        return this.health;
     }
 
     public IntegerProperty scoreProperty() {

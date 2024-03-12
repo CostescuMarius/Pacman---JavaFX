@@ -90,6 +90,7 @@ public class StartScene extends Scene {
         });
         controllerThread.start();
     }
+
     private boolean yRotationPressed = false;
     private void interpretControllerInput(Component component, float value) {
         if (component.isAnalog()) {
@@ -122,10 +123,15 @@ public class StartScene extends Scene {
     }
 
     private void customizeScene() {
-
         root.setSpacing(20);
         root.setAlignment(Pos.CENTER);
 
+        addStartSceneBackgroundImage();
+
+        addComponents();
+    }
+
+    private void addStartSceneBackgroundImage() {
         Image backgroundImage = null;
         try {
             backgroundImage = new Image(new FileInputStream("src/main/resources/com/ioc/pacman/pacmanLogo.png"));
@@ -134,7 +140,9 @@ public class StartScene extends Scene {
             System.exit(-1);
         }
         root.setBackground(new Background(new BackgroundImage(backgroundImage, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT)));
+    }
 
+    private void addComponents() {
         Label nameLabel = new Label("Insert Name");
         nameLabel.setTextFill(Color.ORANGE);
         nameLabel.setFont(Font.font("Comic Sans MS", 25));
@@ -190,7 +198,6 @@ public class StartScene extends Scene {
         nameInput.setOnMouseClicked(event -> {
             showVirtualKeyboard();
         });
-
     }
 
     private void showVirtualKeyboard() {
